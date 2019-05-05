@@ -22,6 +22,7 @@ class IndComPipeline(object):
 			item[k] = v
 	
 	def process_item(self, item, spider):
+		old_key = item.pop("old_key")
 		self.value_fmt(item)
 		state = self.write_mysql(item)
 		if state:
@@ -29,7 +30,8 @@ class IndComPipeline(object):
 			logger.info("write tname={} successful!".format("company"))
 		else:
 			logger.info("write tname={}, company_name={} fail!".format("company", item["company_name"]))
-		modify_redis(item["company_name"], state)
+		
+		modify_redis(item["company_name"], state, old_key)
 		return item
 	
 	def write_mysql(self, data):

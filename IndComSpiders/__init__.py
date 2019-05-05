@@ -16,7 +16,7 @@ mysql_info = {
 		"charset": "utf8"
 	},
 	"win":{
-		"host": "192.168.16.102",
+		"host": "192.168.2.103",
 		"db": "mytmp",
 		"user": "python",
 		"password": "123456",
@@ -26,14 +26,14 @@ mysql_info = {
 
 MONGO_INFO = {
 	"win":{
-		"host": "192.168.16.102",
+		"host": "192.168.2.103",
 	}
 }
 
 
 REDIS_INFO = {
 	"win": {
-		"host": "192.168.16.102",
+		"host": "192.168.2.103",
 		"db": 0,    # 集合名tmp_com_set
 		"port": 6379
 	}
@@ -42,7 +42,7 @@ REDIS_INFO = {
 mysql_conn = pymysql.connect(**mysql_info["win"], cursorclass=pymysql.cursors.DictCursor)
 mysql_cursor = mysql_conn.cursor()
 rd_cli = redis.Redis(**REDIS_INFO["win"])
-new_rd_cli = redis.Redis(host="192.168.16.102", db=4)
+new_rd_cli = redis.Redis(host="192.168.2.103", db=4)
 
 
 mogo_db = pymongo.MongoClient(**MONGO_INFO["win"]).Ind_Com

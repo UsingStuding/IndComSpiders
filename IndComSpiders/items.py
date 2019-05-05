@@ -35,3 +35,4 @@ class BaiduHonorItem(scrapy.Item):
     
     # 网站来源
     site_name = scrapy.Field()
+    old_key = scrapy.Field()

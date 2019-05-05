@@ -50,18 +50,17 @@ def read_redis():
 def get_total_num():
 	return rd_cli.dbsize()
 
-def modify_redis(com_name, state):
-	
-	finger = "1_{}".format(com_name)
-	v = str(rd_cli.get(finger))
+def modify_redis(com_name, state, old_key):
+	# finger = "1_{}".format(com_name)
+	v = str(rd_cli.get(old_key))
 	if not state:
 		new_name = "3_{}".format(com_name)
-		rd_cli.rename(finger, new_name)
+		rd_cli.rename(old_key, new_name)
 	else:
 		new_finger = "2_{}".format(com_name)
 		new_rd_cli.set(new_finger, v)
-		rd_cli.delete(finger)
-		logger.info("finger={} 删除成功".format(finger))
+		rd_cli.delete(old_key)
+		logger.info("old_key={} 删除成功".format(old_key))
 
 
 # read_redis()

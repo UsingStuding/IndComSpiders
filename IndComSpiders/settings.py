@@ -90,7 +90,7 @@ ITEM_PIPELINES = {
 #HTTPCACHE_STORAGE = 'scrapy.extensions.httpcache.FilesystemCacheStorage'
 
 
-LOG_FILE = "/home/python/projects/IndComSpiders/IndComSpiders/logs/log.log"
+LOG_FILE = "/home/study/myprojects/IndComSpiders/IndComSpiders/logs/log.log"
 
 COMMANDS_MODULE = 'IndComSpiders.mycmd'
 
