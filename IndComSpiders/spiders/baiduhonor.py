@@ -7,7 +7,7 @@ from urllib.parse import urlencode, urlparse
 from lxml import etree
 import scrapy, requests
 import execjs
-
+from urllib.parse import unquote
 from IndComSpiders import rd_cli
 from IndComSpiders.items import BaiduHonorItem
 from IndComSpiders.tools.db_toos import read_redis, get_total_num
@@ -28,7 +28,7 @@ class BaiduhonorSpider(scrapy.Spider):
 	start_urls = [("https://xin.baidu.com/", "baidu")]
 	
 	custom_settings = {
-		"CONCURRENT_REQUESTS": 2
+		"CONCURRENT_REQUESTS": 4
 	}
 	
 	
@@ -52,6 +52,7 @@ class BaiduhonorSpider(scrapy.Spider):
 		base_link = "https://xin.baidu.com/s"
 		pp = re.compile("（.*?）")
 		total_num = get_total_num()
+		tm = 5
 		while total_num:
 			k = read_redis()
 			_, cname = k.split("_")
@@ -62,7 +63,7 @@ class BaiduhonorSpider(scrapy.Spider):
 				rd_cli.delete(k)
 				continue
 			full_url = (base_link + "?q={cname}".format(cname=cname)).replace(" ", "")
-			# full_url = "https://xin.baidu.com/fs/check?type=0&fromu=http://xin.baidu.com/s?q=梁山运来汽车贸易有限公司"
+			# full_url = "https://xin.baidu.com/fs/check?type=0&fromu=http://xin.baidu.com/s?q=山东中慧咨询管理有限公司"
 			yield scrapy.Request(url=full_url, headers=self.header, callback=self.parse_list, priority=300, meta={"old_key": k})
 			total_num -= 1
 	
@@ -81,12 +82,14 @@ class BaiduhonorSpider(scrapy.Spider):
 
 		# 验证码
 		if "fs/check" in response.url:
-			url = re.search(self.pp_url, response.url).groups()[0] + "&t=0"
+			url = re.search(self.pp_url, response.url).groups()[0]
 			meta = response.meta
 			cnt = meta.get("cnt", 0)
 			if cnt < 1:
+				url = unquote(unquote(url))		
+				logger.info("列表验证码:{}".format(url))
 				yield scrapy.Request(url, headers=self.header, callback=self.parse_list, dont_filter=True, meta={"cnt": 1, "old_key": old_key} , priority=320)
-		else:
+		else: 
 			href_li = self.handle_link(response.xpath("//div[@class='zx-list-item']//a[contains(@class, 'list-item-url')]/@href").extract())
 			for href in  href_li:
 				logger.info("href={}".format(href))
@@ -133,31 +136,33 @@ class BaiduhonorSpider(scrapy.Spider):
 			meta = response.meta
 			cnt2 = meta.get("cnt2", 0)
 			if cnt2 < 1:
+				url = unquote(unquote(url))
+				logger.info("ajax验证码:{}".format(url))
 				yield scrapy.Request(url, headers=self.header, callback=self.parse_ajax, dont_filter=True, meta={"cnt2": 1, "old_key": meta["old_key"]} , priority=420)
-
-		json_data = json.loads(response.text)
-		data = json_data["data"]
-		if json_data["status"] != 0 or not data:
-			logger.info("[ajax返回空数据]")
-			return {}
-		item = BaiduHonorItem()
-		item["company_name"] = data["entName"]
-		item["source_url"] = response.url
-		item["credit_code"], item["legal_person"] = data.get("unifiedCode", data.get("regNo", "")), data["legalPerson"]
-		item["register_status"], item["establish_date"] = data["openStatus"], data["startDate"]
-		item["business_date"], item["register_capital"] = data["openTime"], self.handle_number(data["regCapital"])
-		item["address"], item["register_office"] = data["regAddr"], data["authority"]
-		item["company_type"], item["business_scope"] = data["entType"], data["scope"]
-		item["business_license"] = data.get("licenseNumber", "")
-		try:
-			item["other"] = self.handle_other(data.get("shares", []), data.get("directors", []), data.get("licenseNumber", ""))
-		except Exception as e:
-			print("解析other出现异常:", str(e))
-			item["other"] = ""
-		item["site_name"] = "百度信用"
-		item["old_key"] = response.meta["old_key"]
-		yield item
-	
+		else:
+			json_data = json.loads(response.text)
+			data = json_data["data"]
+			if json_data["status"] != 0 or not data:
+				logger.info("[ajax返回空数据]")
+				return {}
+			item = BaiduHonorItem()
+			item["company_name"] = data["entName"]
+			item["source_url"] = response.url
+			item["credit_code"], item["legal_person"] = data.get("unifiedCode", data.get("regNo", "")), data["legalPerson"]
+			item["register_status"], item["establish_date"] = data["openStatus"], data["startDate"]
+			item["business_date"], item["register_capital"] = data["openTime"], self.handle_number(data["regCapital"])
+			item["address"], item["register_office"] = data["regAddr"], data["authority"]
+			item["company_type"], item["business_scope"] = data["entType"], data["scope"]
+			item["business_license"] = data.get("licenseNumber", "")
+			try:
+				item["other"] = self.handle_other(data.get("shares", []), data.get("directors", []), data.get("licenseNumber", ""))
+			except Exception as e:
+				print("解析other出现异常:", str(e))
+				item["other"] = ""
+			item["site_name"] = "百度信用"
+			item["old_key"] = response.meta["old_key"]
+			yield item
+		
 	def exe_js(self, html, js_str):
 		"""
 		使用execjs执行js字符串
