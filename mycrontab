@@ -1,0 +1,8 @@
+
+* * * * * echo "I am kk's crontab" >> /home/study/test.txt
+*/15 * * * * cd /home/study/myprojects/IndComSpiders && /home/study/.virtualenvs/py3_spider/bin/scrapy crawl baidu_honor
+
+
+
+
+

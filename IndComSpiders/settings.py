@@ -55,7 +55,7 @@ ROBOTSTXT_OBEY = False
 DOWNLOADER_MIDDLEWARES = {
    'IndComSpiders.middlewares.IndComMiddleware': 543,
 }
-
+CLOSESPIDER_TIMEOUT = 600  # 秒
 # Enable or disable extensions
 # See https://doc.scrapy.org/en/latest/topics/extensions.html
 #EXTENSIONS = {

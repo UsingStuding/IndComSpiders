@@ -1,7 +1,7 @@
 
 # -*- coding: utf-8 -*-
 import json
-import re
+import re, time
 from urllib import parse
 from urllib.parse import urlencode, urlparse
 from lxml import etree
@@ -28,7 +28,7 @@ class BaiduhonorSpider(scrapy.Spider):
 	start_urls = [("https://xin.baidu.com/", "baidu")]
 	
 	custom_settings = {
-		"CONCURRENT_REQUESTS": 4
+		"CONCURRENT_REQUESTS": 12
 	}
 	
 	
@@ -85,10 +85,12 @@ class BaiduhonorSpider(scrapy.Spider):
 			url = re.search(self.pp_url, response.url).groups()[0]
 			meta = response.meta
 			cnt = meta.get("cnt", 0)
-			if cnt < 1:
+			if cnt < 2:
 				url = unquote(unquote(url))		
 				logger.info("列表验证码:{}".format(url))
-				yield scrapy.Request(url, headers=self.header, callback=self.parse_list, dont_filter=True, meta={"cnt": 1, "old_key": old_key} , priority=320)
+				time.sleep(1.5)
+				cnt += 1
+				yield scrapy.Request(url, headers=self.header, callback=self.parse_list, dont_filter=True, meta={"cnt": cnt, "old_key": old_key} , priority=300)
 		else: 
 			href_li = self.handle_link(response.xpath("//div[@class='zx-list-item']//a[contains(@class, 'list-item-url')]/@href").extract())
 			for href in  href_li:
@@ -135,10 +137,12 @@ class BaiduhonorSpider(scrapy.Spider):
 			url = re.search(self.pp_url, response.url).groups()[0]
 			meta = response.meta
 			cnt2 = meta.get("cnt2", 0)
-			if cnt2 < 1:
+			if cnt2 < 2:
 				url = unquote(unquote(url))
+				cnt2 += 1
 				logger.info("ajax验证码:{}".format(url))
-				yield scrapy.Request(url, headers=self.header, callback=self.parse_ajax, dont_filter=True, meta={"cnt2": 1, "old_key": meta["old_key"]} , priority=420)
+				yield scrapy.Request(url, headers=self.header, callback=self.parse_ajax, dont_filter=True, meta={"cnt2": cnt2, "old_key": meta["old_key"]} , priority=420)
+				
 		else:
 			json_data = json.loads(response.text)
 			data = json_data["data"]
