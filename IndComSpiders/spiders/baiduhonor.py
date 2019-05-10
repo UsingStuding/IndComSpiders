@@ -31,7 +31,6 @@ class BaiduhonorSpider(scrapy.Spider):
 		"CONCURRENT_REQUESTS": 12
 	}
 	
-	
 	rules = {
 		"list": {
 			"link": "//div[contains(@class, 'zx-ent-info')]//a[@title]/@href"   # https://xin.baidu.com + xxx
@@ -79,7 +78,7 @@ class BaiduhonorSpider(scrapy.Spider):
 			logger.info("返回异常,{}".format(txt))
 			rd_cli.delete(old_key)
 			return
-
+		self.header["Referer"] = response.url
 		# 验证码
 		if "fs/check" in response.url:
 			url = re.search(self.pp_url, response.url).groups()[0]
@@ -95,7 +94,6 @@ class BaiduhonorSpider(scrapy.Spider):
 			href_li = self.handle_link(response.xpath("//div[@class='zx-list-item']//a[contains(@class, 'list-item-url')]/@href").extract())
 			for href in  href_li:
 				logger.info("href={}".format(href))
-				self.header["Referer"] = response.url
 				yield scrapy.Request(url=href, headers=self.header, callback=self.parse_detail, priority=350, meta={"old_key": old_key})
 
 	def parse_detail(self, response):
@@ -133,6 +131,8 @@ class BaiduhonorSpider(scrapy.Spider):
 		:param response:
 		:return: item
 		"""
+		self.header["Referer"] = response.url
+
 		if "fs/check" in response.url:
 			url = re.search(self.pp_url, response.url).groups()[0]
 			meta = response.meta
