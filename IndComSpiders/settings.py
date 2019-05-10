@@ -55,7 +55,7 @@ ROBOTSTXT_OBEY = False
 DOWNLOADER_MIDDLEWARES = {
    'IndComSpiders.middlewares.IndComMiddleware': 543,
 }
-CLOSESPIDER_TIMEOUT = 600  # 秒
+CLOSESPIDER_TIMEOUT = 720  # 秒
 # Enable or disable extensions
 # See https://doc.scrapy.org/en/latest/topics/extensions.html
 #EXTENSIONS = {
@@ -90,7 +90,7 @@ ITEM_PIPELINES = {
 #HTTPCACHE_STORAGE = 'scrapy.extensions.httpcache.FilesystemCacheStorage'
 
 
-LOG_FILE = "/home/study/myprojects/IndComSpiders/IndComSpiders/logs/log.log"
+LOG_FILE = "/home/study/myprojects/IndComSpiders/IndComSpiders/logs/log.txt"
 
 COMMANDS_MODULE = 'IndComSpiders.mycmd'
 
